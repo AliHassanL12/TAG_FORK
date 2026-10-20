@@ -38,6 +38,7 @@ public class BasicMCTSPlayer extends AbstractPlayer {
     public BasicMCTSPlayer(BasicMCTSParams params) {
         super(params, "Basic MCTS");
         rnd = new Random(params.getRandomSeed());
+        setName("MCTS " + params.heuristic.getClass().getSimpleName());
     }
 
     @Override

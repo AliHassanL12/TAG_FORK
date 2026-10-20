@@ -13,7 +13,10 @@ import games.pandemic.PandemicForwardModel;
 import gui.AbstractGUIManager;
 import gui.GUI;
 import gui.GamePanel;
+import players.PlayerConstants;
+import players.basicMCTS.BasicMCTSParams;
 import players.basicMCTS.BasicMCTSPlayer;
+import players.heuristics.CantStopHeuristic;
 import players.human.ActionController;
 import players.human.HumanGUIPlayer;
 import players.mcts.MCTSPlayer;
@@ -702,7 +705,7 @@ public class Game {
      * and then run this class.
      */
     public static void main(String[] args) {
-        String gameType = Utils.getArg(args, "game", "SushiGo");
+        String gameType = Utils.getArg(args, "game", "CantStop");
         boolean useGUI = Utils.getArg(args, "gui", true);
         int turnPause = Utils.getArg(args, "turnPause", 0);
         long seed = Utils.getArg(args, "seed", System.currentTimeMillis());
@@ -711,18 +714,27 @@ public class Game {
         /* Set up players for the game */
         ArrayList<AbstractPlayer> players = new ArrayList<>();
 
-        players.add(new MCTSPlayer());
-//        players.add(new HumanConsolePlayer());
-//        players.add(new HumanConsolePlayer());
-//        players.add(new RandomPlayer());
-//        players.add(new RandomPlayer());
-        players.add(new RandomPlayer());
-        players.add(new RandomPlayer());
-//        players.add(new HumanGUIPlayer(ac));
-        players.add(new BasicMCTSPlayer());
-        players.add(new BasicMCTSPlayer());
-//        players.add(new BasicMCTSPlayer());
-//        players.add(new BasicMCTSPlayer());
+        BasicMCTSParams params = new BasicMCTSParams();
+        params.rolloutLength = 10;
+        params.maxTreeDepth = 5;
+        params.budgetType = PlayerConstants.BUDGET_FM_CALLS;
+        params.budget = 1000;
+        params.heuristic = new CantStopHeuristic();
+
+        players.add(new BasicMCTSPlayer(params));
+        players.add(new HumanGUIPlayer(ac));
+//      players.add(new MCTSPlayer());
+//      players.add(new HumanConsolePlayer());
+//      players.add(new HumanConsolePlayer());
+//      players.add(new RandomPlayer());
+//      players.add(new RandomPlayer());
+//      players.add(new RandomPlayer());
+//      players.add(new RandomPlayer());
+//      players.add(new HumanGUIPlayer(ac));
+//      players.add(new BasicMCTSPlayer());
+//      players.add(new BasicMCTSPlayer());
+//      players.add(new BasicMCTSPlayer());
+//      players.add(new BasicMCTSPlayer());
 
 
         /* Game parameter configuration. Set to null to ignore and use default parameters */
