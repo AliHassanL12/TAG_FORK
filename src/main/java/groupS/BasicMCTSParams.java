@@ -6,7 +6,6 @@ import players.PlayerParameters;
 
 import java.util.Arrays;
 
-
 public class BasicMCTSParams extends PlayerParameters {
 
     public double K = Math.sqrt(2);
@@ -14,6 +13,7 @@ public class BasicMCTSParams extends PlayerParameters {
     public int maxTreeDepth = 100; // effectively no limit
     public double epsilon = 1e-6;
     public IStateHeuristic heuristic = AbstractGameState::getHeuristicScore;
+    public int determinizations = 1;
 
     public BasicMCTSParams() {
         addTunableParameter("K", Math.sqrt(2), Arrays.asList(0.0, 0.1, 1.0, Math.sqrt(2), 3.0, 10.0));
@@ -21,6 +21,7 @@ public class BasicMCTSParams extends PlayerParameters {
         addTunableParameter("maxTreeDepth", 100, Arrays.asList(1, 3, 10, 30, 100));
         addTunableParameter("epsilon", 1e-6);
         addTunableParameter("heuristic", (IStateHeuristic) AbstractGameState::getHeuristicScore);
+        addTunableParameter("determinizations", 1, Arrays.asList(1, 2, 5, 10));
     }
 
     @Override
@@ -31,6 +32,7 @@ public class BasicMCTSParams extends PlayerParameters {
         maxTreeDepth = (int) getParameterValue("maxTreeDepth");
         epsilon = (double) getParameterValue("epsilon");
         heuristic = (IStateHeuristic) getParameterValue("heuristic");
+        determinizations = (int) getParameterValue("determinizations");
     }
 
     @Override

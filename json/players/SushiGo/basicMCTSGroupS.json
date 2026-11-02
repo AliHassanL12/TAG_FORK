@@ -7,5 +7,6 @@
     "class": "groupS.SushiGoHeuristic"
   },
   "budgetType": "BUDGET_TIME",
-  "budget": 40
+  "budget": 40,
+  "determinizations": 2
 }

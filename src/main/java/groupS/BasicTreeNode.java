@@ -61,6 +61,10 @@ class BasicTreeNode {
      * Performs full MCTS search, using the defined budget limits.
      */
     void mctsSearch() {
+        mctsSearch(player.getParameters().budget);
+    }
+
+    void mctsSearch(int searchBudget) {
 
         BasicMCTSParams params = player.getParameters();
 
@@ -71,7 +75,7 @@ class BasicTreeNode {
         int remainingLimit = params.breakMS;
         ElapsedCpuTimer elapsedTimer = new ElapsedCpuTimer();
         if (params.budgetType == BUDGET_TIME) {
-            elapsedTimer.setMaxTimeMillis(params.budget);
+            elapsedTimer.setMaxTimeMillis(searchBudget);
         }
 
         // Tracking number of iterations for iteration budget
@@ -102,10 +106,10 @@ class BasicTreeNode {
                 stop = remaining <= 2 * avgTimeTaken || remaining <= remainingLimit;
             } else if (budgetType == BUDGET_ITERATIONS) {
                 // Iteration budget
-                stop = numIters >= params.budget;
+                stop = numIters >= searchBudget;
             } else if (budgetType == BUDGET_FM_CALLS) {
                 // FM calls budget
-                stop = fmCallsCount > params.budget;
+                stop = fmCallsCount > searchBudget;
             }
         }
     }
@@ -322,6 +326,23 @@ class BasicTreeNode {
         }
 
         return bestAction;
+    }
+
+    // Best action already chooses the most visited root location. We will extend that functionality by adding visits for the same action across trees
+
+    Map<AbstractAction, Integer> getRootActionVisits() {
+        Map<AbstractAction, Integer> visits = new HashMap<>();
+
+        for (Map.Entry<AbstractAction, groupS.BasicTreeNode> entry : children.entrySet()) {
+
+            groupS.BasicTreeNode child = entry.getValue();
+
+            if (child != null) {
+                visits.put(entry.getKey(), child.nVisits);
+            }
+        }
+
+        return visits;
     }
 
 }
