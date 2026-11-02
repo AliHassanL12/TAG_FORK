@@ -11,6 +11,7 @@ import java.util.Random;
 import java.util.Map;
 import java.util.HashMap;
 
+import games.sushigo.SGGameState;
 import players.PlayerConstants;
 import utilities.ElapsedCpuTimer;
 
@@ -55,6 +56,21 @@ public class BasicMCTSPlayer extends AbstractPlayer {
 
         BasicMCTSParams params = getParameters();
         int samples = Math.max(1, params.determinizations);
+
+        // Switch to one tree if we know all the hands
+        SGGameState sgState = (SGGameState) gameState;
+        boolean allHandsKnown = true;
+
+        for (int p = 0; p < sgState.getNPlayers(); p++) {
+            if (!sgState.isHandKnown(getPlayerID(), p)) {
+                allHandsKnown = false;
+                break;
+            }
+        }
+
+        if (allHandsKnown) {
+            samples = 1;
+        }
 
         // If configured for one deal, run original search
         if (samples == 1) {
