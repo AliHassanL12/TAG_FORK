@@ -80,12 +80,25 @@ public class SushiGoHeuristic implements IStateHeuristic {
         double nextSashimiChance = q;
         int incomingHandSize = state.getPlayerHands().get(incomingPlayer).getSize();
 
+        // Accounting for whether opponent is close to completing a set - meaning more likely to choose that card.
+        int opponentTempura = state.getPlayedCardTypes()[incomingPlayer].get(SGCard.SGCardType.Tempura).getValue();
+        int opponentSashimi = state.getPlayedCardTypes()[incomingPlayer].get(SGCard.SGCardType.Sashimi).getValue();
+
+        boolean opponentNeedsTempura = opponentTempura % 2 == 1;
+        boolean opponentNeedsSashimi = opponentSashimi % 3 == 2;
+
         if (laterPicks > 0 && incomingHandKnown && !incomingHasChopsticks && incomingHandSize > 1) {
 
-            // Chance of getting one tempura is 1 - 1 / hand size. If more than 1, then guaranteed. Same for Sashimi.
-            nextTempuraChance = incomingTempura == 0 ? 0.0 : incomingTempura == 1 ? 1.0 - (1.0 / incomingHandSize) : 1.0;
+            // Normal cards weight 1, tempura and sashimi completing a pair weigh 3.
+            double tempuraWeight = opponentNeedsTempura ? 3.0 : 1.0;
+            double sashimiWeight = opponentNeedsSashimi ? 3.0 : 1.0;
+            int otherCards = incomingHandSize - incomingTempura - incomingSashimi;
 
-            nextSashimiChance = incomingSashimi == 0 ? 0.0 : incomingSashimi == 1 ? 1.0 - (1.0 / incomingHandSize) : 1.0;
+            double totalWeight = (incomingTempura * tempuraWeight) + (incomingSashimi * sashimiWeight) + otherCards;
+
+            // Chance of getting one tempura is 1 - tempura weight / total weight. If more than 1, then guaranteed. Same for Sashimi.
+            nextTempuraChance = incomingTempura == 0 ? 0.0 : incomingTempura == 1 ? 1.0 - (tempuraWeight / totalWeight) : 1.0;
+            nextSashimiChance = incomingSashimi == 0 ? 0.0 : incomingSashimi == 1 ? 1.0 - (sashimiWeight / totalWeight) : 1.0;
         }
 
         double tempuraOneLater = 0;
