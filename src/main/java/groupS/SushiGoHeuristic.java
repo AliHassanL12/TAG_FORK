@@ -39,33 +39,58 @@ public class SushiGoHeuristic implements IStateHeuristic {
         // Assumed chance of obtaining the needed card per pick
         double q = 0.2;
 
-        // Probability formula for at least 1 success
-        double probabilityOneOrMore = 1 - Math.pow(1 - q, picksRemaining);
+        int tempuraInHand = 0;
+        int sashimiInHand = 0;
 
-        // For when we have one leftover Sashimi, and require two.
-        double probabilityTwoOrMore = 0;
+        for (SGCard card : state.getPlayerHands().get(playerId).getComponents()) {
+            if (card.type == SGCard.SGCardType.Tempura) {
+                tempuraInHand++;
+            } else if (card.type == SGCard.SGCardType.Sashimi) {
+                sashimiInHand++;
+            }
+        }
 
-        if (picksRemaining >= 2) {
-            double probabilityZero = Math.pow(1 - q, picksRemaining);
+        boolean canChooseNow = state.getCardChoices().get(playerId).isEmpty() && picksRemaining > 0;
+        boolean tempuraAvailableNow = canChooseNow && tempuraInHand > 0;
+        boolean sashimiAvailableNow = canChooseNow && sashimiInHand > 0;
 
-            double probabilityExactlyOne =
-                    picksRemaining * q * Math.pow(1 - q, picksRemaining - 1);
+        // Separating current pick from later opportunities
+        int laterPicks = canChooseNow ? picksRemaining - 1 : picksRemaining;
 
-            probabilityTwoOrMore =
-                    1 - probabilityZero - probabilityExactlyOne;
+        double probabilityOneLater = 1 - Math.pow(1 - q, laterPicks);
+        double probabilityTwoLater = 0;
+
+        if (laterPicks >= 2) {
+            probabilityTwoLater = 1 - Math.pow(1 - q, laterPicks) - laterPicks * q * Math.pow(1 - q, laterPicks - 1);
         }
 
         // Turn probability into potential points
-        double potential = 0;
 
-        if (leftoverTempura == 1) {
-            potential += 5 * probabilityOneOrMore;
-        }
+        // Potential from later picks, without taking either cards for now
+        double tempuraLater = leftoverTempura == 1 ? 5 * probabilityOneLater : 0;
+
+        double sashimiLater = 0;
 
         if (leftoverSashimi == 1) {
-            potential += 10 * probabilityTwoOrMore;
+            sashimiLater = 10 * probabilityTwoLater;
         } else if (leftoverSashimi == 2) {
-            potential += 10 * probabilityOneOrMore;
+            sashimiLater = 10 * probabilityOneLater;
+        }
+
+        double potential = tempuraLater + sashimiLater;
+
+        // or use the current pick for tempura
+        if (tempuraAvailableNow && leftoverTempura == 1) {
+            double takeTempura = 5 + sashimiLater;
+            potential = Math.max(potential, takeTempura);
+        }
+
+        // or use the current pick for sashimi
+        if (sashimiAvailableNow && leftoverSashimi > 0) {
+            double sashimiAfterPick = leftoverSashimi == 2 ? 10 : 10 * probabilityOneLater;
+
+            double takeSashimi = tempuraLater + sashimiAfterPick;
+            potential = Math.max(potential, takeSashimi);
         }
 
         // Maki Counts
