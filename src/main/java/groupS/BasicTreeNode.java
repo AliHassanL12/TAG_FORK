@@ -15,6 +15,8 @@ import static java.util.stream.Collectors.toList;
 import static players.PlayerConstants.*;
 import static utilities.Utils.noise;
 
+import games.sushigo.SGGameState;
+
 class BasicTreeNode {
     // Root node of tree
     BasicTreeNode root;
@@ -262,11 +264,17 @@ class BasicTreeNode {
      * @return - true if rollout finished, false otherwise
      */
     private boolean finishRollout(AbstractGameState rollerState, int depth) {
-        if (depth >= player.getParameters().rolloutLength)
+        if (!rollerState.isNotTerminal()) {
             return true;
+        }
 
-        // End of game
-        return !rollerState.isNotTerminal();
+        if (depth < player.getParameters().rolloutLength) {
+            return false;
+        }
+
+        SGGameState sgState = (SGGameState) rollerState;
+
+        return sgState.getCardChoices().stream().allMatch(choices -> choices.isEmpty());
     }
 
     /**

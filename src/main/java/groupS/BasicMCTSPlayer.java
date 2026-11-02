@@ -33,11 +33,15 @@ public class BasicMCTSPlayer extends AbstractPlayer {
         params.maxTreeDepth = 5;
         params.epsilon = 1e-6;
 
+        setStateHeuristic(new SushiGoHeuristic());
+
     }
 
     public BasicMCTSPlayer(BasicMCTSParams params) {
         super(params, "Basic MCTS");
         rnd = new Random(params.getRandomSeed());
+
+        setStateHeuristic(new SushiGoHeuristic());
         setName("MCTS " + params.heuristic.getClass().getSimpleName());
     }
 
@@ -59,6 +63,7 @@ public class BasicMCTSPlayer extends AbstractPlayer {
     }
 
     public void setStateHeuristic(IStateHeuristic heuristic) {
+        getParameters().setParameterValue("heuristic", heuristic);
         getParameters().heuristic = heuristic;
     }
 
