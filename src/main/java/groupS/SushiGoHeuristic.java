@@ -92,6 +92,35 @@ public class SushiGoHeuristic implements IStateHeuristic {
                 potential += 3 / playersTied;
             }
         }
+
+        // Pudding award estimate using current counts. Pudding rewards being first and penalises being last.
+        int myPudding = state.getPlayedCardTypes()[playerId].get(SGCard.SGCardType.Pudding).getValue();
+
+        int puddingAhead = 0;
+        int puddingBehind = 0;
+        int puddingTied = 0;
+
+        for (int p = 0; p < state.getNPlayers(); p++) {
+            int pudding = state.getPlayedCardTypes()[p]
+                    .get(SGCard.SGCardType.Pudding).getValue();
+
+            if (pudding > myPudding) {
+                puddingAhead++;
+            } else if (pudding < myPudding) {
+                puddingBehind++;
+            } else {
+                puddingTied++;
+            }
+        }
+
+        // Nobody ahead = split + 6, nobody behind = split - 6
+        if (puddingTied < state.getNPlayers()) {
+            if (puddingAhead == 0) {
+                potential += 6 / puddingTied;
+            } else if (puddingBehind == 0 && state.getNPlayers() > 2) {
+                potential += -6 / puddingTied;
+            }
+        }
         return (score + potential) / 50.0;
     }
 }
