@@ -121,6 +121,20 @@ public class SushiGoHeuristic implements IStateHeuristic {
                 potential += -6 / puddingTied;
             }
         }
+
+        // Unused wasabi count reward multiplier
+        int unusedWasabi = state.getPlayedCardTypes()[playerId].get(SGCard.SGCardType.Wasabi).getValue();
+
+        // Need to account for chance of Nigiri Pick, and the average value of a nigiri pick. Assumed, for now.
+        double nigiriChance = 0.2;
+        double averageNigiriValue = 2.0;
+
+        double probabilityNigiri = 1 - Math.pow(1 - nigiriChance, picksRemaining);
+        double wasabiBonus = (3 - 1) * averageNigiriValue;
+
+        if (unusedWasabi > 0) {
+            potential += wasabiBonus * probabilityNigiri;
+        }
         return (score + potential) / 50.0;
     }
 }
