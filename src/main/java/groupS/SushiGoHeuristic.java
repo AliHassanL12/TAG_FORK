@@ -31,6 +31,25 @@ public class SushiGoHeuristic implements IStateHeuristic {
         // How many picks remain?
         int picksRemaining = state.getPlayerHands().get(playerId).getSize();
 
+
+        // Account for whether you know the incoming hand from the next player
+        int incomingPlayer = (playerId + 1) % state.getNPlayers();
+        boolean incomingHandKnown = state.isHandKnown(playerId, incomingPlayer);
+        boolean incomingHasChopsticks = state.getPlayedCardTypes()[incomingPlayer].get(SGCard.SGCardType.Chopsticks).getValue() > 0;
+
+        int incomingTempura = 0;
+        int incomingSashimi = 0;
+
+        if (incomingHandKnown) {
+            for (SGCard card : state.getPlayerHands().get(incomingPlayer).getComponents()) {
+                if (card.type == SGCard.SGCardType.Tempura) {
+                    incomingTempura++;
+                } else if (card.type == SGCard.SGCardType.Sashimi) {
+                    incomingSashimi++;
+                }
+            }
+        }
+
         // If we have already chosen this turn, subtract that used opportunity from hand size
         if (!state.getCardChoices().get(playerId).isEmpty()) {
             picksRemaining--;
@@ -57,24 +76,57 @@ public class SushiGoHeuristic implements IStateHeuristic {
         // Separating current pick from later opportunities
         int laterPicks = canChooseNow ? picksRemaining - 1 : picksRemaining;
 
-        double probabilityOneLater = 1 - Math.pow(1 - q, laterPicks);
-        double probabilityTwoLater = 0;
+        double nextTempuraChance = q;
+        double nextSashimiChance = q;
+        int incomingHandSize = state.getPlayerHands().get(incomingPlayer).getSize();
 
-        if (laterPicks >= 2) {
-            probabilityTwoLater = 1 - Math.pow(1 - q, laterPicks) - laterPicks * q * Math.pow(1 - q, laterPicks - 1);
+        if (laterPicks > 0 && incomingHandKnown && !incomingHasChopsticks && incomingHandSize > 1) {
+
+            // Chance of getting one tempura is 1 - 1 / hand size. If more than 1, then guaranteed. Same for Sashimi.
+            nextTempuraChance = incomingTempura == 0 ? 0.0 : incomingTempura == 1 ? 1.0 - (1.0 / incomingHandSize) : 1.0;
+
+            nextSashimiChance = incomingSashimi == 0 ? 0.0 : incomingSashimi == 1 ? 1.0 - (1.0 / incomingHandSize) : 1.0;
         }
 
+        double tempuraOneLater = 0;
+        double sashimiOneLater = 0;
+        double sashimiTwoLater = 0;
+
+        if (laterPicks > 0) {
+            // Remaining picks - the incoming pick we're handling separately
+            int remainingPicks = laterPicks - 1;
+
+            // Chance of no matching cards
+            double zeroAfterNext = Math.pow(1 - q, remainingPicks);
+
+            double oneAfterNext = 0;
+            if (remainingPicks > 0) {
+                // Probability is remaining pick arrangements * q * probability that all other picks miss
+                oneAfterNext = remainingPicks * q * Math.pow(1 - q, remainingPicks - 1);
+            }
+
+            // 1 - (miss next AND miss every pick afterward)
+            tempuraOneLater = 1 - (1 - nextTempuraChance) * zeroAfterNext;
+
+            sashimiOneLater = 1 - (1 - nextSashimiChance) * zeroAfterNext;
+
+            double zeroSashimi = (1 - nextSashimiChance) * zeroAfterNext;
+
+            double exactlyOneSashimi = nextSashimiChance * zeroAfterNext + (1 - nextSashimiChance) * oneAfterNext;
+
+            sashimiTwoLater = 1 - zeroSashimi - exactlyOneSashimi;
+        }
         // Turn probability into potential points
 
         // Potential from later picks, without taking either cards for now
-        double tempuraLater = leftoverTempura == 1 ? 5 * probabilityOneLater : 0;
+        double tempuraLater = leftoverTempura == 1 ? 5 * tempuraOneLater : 0;
 
         double sashimiLater = 0;
 
         if (leftoverSashimi == 1) {
-            sashimiLater = 10 * probabilityTwoLater;
+            sashimiLater = 10 * sashimiTwoLater;
         } else if (leftoverSashimi == 2) {
-            sashimiLater = 10 * probabilityOneLater;
+            sashimiLater = 10 * sashimiOneLater;
         }
 
         double potential = tempuraLater + sashimiLater;
@@ -87,7 +139,7 @@ public class SushiGoHeuristic implements IStateHeuristic {
 
         // or use the current pick for sashimi
         if (sashimiAvailableNow && leftoverSashimi > 0) {
-            double sashimiAfterPick = leftoverSashimi == 2 ? 10 : 10 * probabilityOneLater;
+            double sashimiAfterPick = leftoverSashimi == 2 ? 10 : 10 * sashimiOneLater;
 
             double takeSashimi = tempuraLater + sashimiAfterPick;
             potential = Math.max(potential, takeSashimi);

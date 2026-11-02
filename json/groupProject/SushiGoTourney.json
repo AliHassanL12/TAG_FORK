@@ -2,7 +2,7 @@
   "game": "SushiGo",
   "nPlayers": 4,
   "mode": "random",
-  "matchups": 500,
+  "matchups": 10,
   "verbose": false,
   "listener": "json/listeners/basiclistener.json",
   "destDir": "outputdir",
