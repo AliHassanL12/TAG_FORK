@@ -1,0 +1,14 @@
+{
+  "class" : "players.rhea.RHEAParams",
+  "horizon": 10,
+  "populationSize": 8,
+  "discountFactor": 0.9,
+  "childCount": 6,
+  "crossoverType": "UNIFORM",
+  "eliteCount": 2,
+  "selectionType" : "TOURNAMENT",
+  "tournamentSize" : 4,
+  "shiftLeft": true,
+  "budgetType" : "BUDGET_FM_CALLS",
+  "budget" : 1000
+}
