@@ -68,6 +68,30 @@ public class SushiGoHeuristic implements IStateHeuristic {
             potential += 10 * probabilityOneOrMore;
         }
 
+        // Maki Counts
+        int myMaki = state.getPlayedCardTypes()[playerId].get(SGCard.SGCardType.Maki).getValue();
+
+        int playersAhead = 0;
+        int playersTied = 0;
+
+        for (int p = 0; p < state.getNPlayers(); p++) {
+            int maki = state.getPlayedCardTypes()[p].get(SGCard.SGCardType.Maki).getValue();
+
+            if (maki > myMaki) {
+                playersAhead++;
+            } else if (maki == myMaki) {
+                playersTied++;
+            }
+        }
+
+        if (myMaki > 0) {
+            // Integer division intentionally rounds down split Maki awards
+            if (playersAhead == 0) {
+                potential += 6 / playersTied;
+            } else if (playersAhead == 1) {
+                potential += 3 / playersTied;
+            }
+        }
         return (score + potential) / 50.0;
     }
 }
