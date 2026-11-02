@@ -33,7 +33,7 @@ public class BasicMCTSPlayer extends AbstractPlayer {
         params.maxTreeDepth = 5;
         params.epsilon = 1e-6;
 
-        setStateHeuristic(new SushiGoHeuristic());
+        setName("Group S MCTS");
 
     }
 
@@ -41,7 +41,6 @@ public class BasicMCTSPlayer extends AbstractPlayer {
         super(params, "Basic MCTS");
         rnd = new Random(params.getRandomSeed());
 
-        setStateHeuristic(new SushiGoHeuristic());
         setName("MCTS " + params.heuristic.getClass().getSimpleName());
     }
 

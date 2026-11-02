@@ -1,0 +1,11 @@
+{
+  "class": "groupS.BasicMCTSParams",
+  "K": 1.0,
+  "rolloutLength": 10,
+  "maxTreeDepth": 30,
+  "heuristic": {
+    "class": "groupS.SushiGoHeuristic"
+  },
+  "budgetType": "BUDGET_TIME",
+  "budget": 40
+}
